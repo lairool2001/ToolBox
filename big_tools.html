@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>工具集</title>
+ <style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    height: 100vh;
+    background-color: #f5f5f5;
+  }
+
+  /* 左側面板 */
+  .sidebar {
+    width: 250px;
+    background-color: #2c3e50;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+  }
+
+  .sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid #34495e;
+  }
+
+  .sidebar-header h1 {
+    font-size: 18px;
+    margin-bottom: 15px;
+  }
+
+  .search-box {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    background-color: #34495e;
+    color: white;
+  }
+
+  .search-box::placeholder {
+    color: #bdc3c7;
+  }
+
+  .sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 0;
+  }
+
+  .page-item {
+    padding: 15px 20px;
+    cursor: pointer;
+    border-left: 4px solid transparent;
+    transition: all 0.3s ease;
+  }
+
+  .page-item:hover {
+    background-color: #34495e;
+  }
+
+  .page-item.active {
+    background-color: #3498db;
+    border-left-color: #e74c3c;
+  }
+
+  /* 右側內容 */
+  .main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .content-header {
+    margin-bottom: 20px;
+  }
+
+  .content-header h2 {
+    font-size: 28px;
+    color: #2c3e50;
+  }
+
+  .page-content {
+    flex: 1;
+    background-color: white;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    display: none;
+  }
+
+  .page-content.active {
+    display: block;
+  }
+
+  /* 計時器樣式 */
+  .timer-display {
+    font-size: 48px;
+    font-weight: bold;
+    text-align: center;
+    color: #3498db;
+    margin: 30px 0;
+  }
+
+  .timer-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  /* 計數器樣式 */
+  .counter-display {
+    font-size: 64px;
+    font-weight: bold;
+    text-align: center;
+    color: #e74c3c;
+    margin: 40px 0;
+  }
+
+  .counter-controls {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+  }
+
+  /* 碼表樣式 */
+  .stopwatch-display {
+    font-size: 48px;
+    font-weight: bold;
+    text-align: center;
+    color: #27ae60;
+    margin: 30px 0;
+    font-family: 'Courier New', monospace;
+  }
+
+  .stopwatch-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  /* 按鈕樣式 */
+  button {
+    padding: 10px 20px;
+    font-size: 14px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #3498db;
+    color: white;
+    transition: background-color 0.3s ease;
+  }
+
+  button:hover {
+    background-color: #2980b9;
+  }
+
+  button.danger {
+    background-color: #e74c3c;
+  }
+
+  button.danger:hover {
+    background-color: #c0392b;
+  }
+
+  button.success {
+    background-color: #27ae60;
+  }
+
+  button.success:hover {
+    background-color: #229954;
+  }
+
+  button.secondary {
+    background-color: #95a5a6;
+  }
+
+  button.secondary:hover {
+    background-color: #7f8c8d;
+  }
+ </style>
+</head>
+<body>
+  <!-- 左側面板 -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h1>工具集</h1>
+      <input type="text" class="search-box" id="searchBox" placeholder="搜尋頁面...">
+    </div>
+    <div class="sidebar-content" id="sidebarContent">
+      <div class="page-item active" data-page="current-time">現在時間</div>
+      <div class="page-item" data-page="counter">計數器</div>
+      <div class="page-item" data-page="stopwatch">碼表</div>
+      <div class="page-item" data-page="string-replace">字串替代</div>
+      <div class="page-item" data-page="char-count">字數統計</div>
+      <div class="page-item" data-page="world-time">全球時間</div>
+      <div class="page-item" data-page="system-status">電腦狀態</div>
+      <div class="page-item" data-page="wan-ip">WAN IP</div>
+    </div>
+  </div>
+
+  <!-- 右側內容 -->
+  <div class="main-content">
+    <div class="content-header">
+      <h2 id="pageTitle">現在時間</h2>
+    </div>
+
+    <!-- 現在時間頁面 -->
+    <div class="page-content active" id="current-time-page">
+      <div style="text-align: center; padding: 40px;">
+        <div id="currentClock" style="font-size: 72px; font-weight: bold; color: #3498db; margin-bottom: 30px; font-family: 'Courier New', monospace;">00:00:00</div>
+        <div id="currentDate" style="font-size: 24px; color: #2c3e50; margin-bottom: 20px;"></div>
+        <div id="currentWeekday" style="font-size: 18px; color: #7f8c8d; margin-bottom: 30px;"></div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 500px; margin: 0 auto;">
+          <div style="padding: 15px; background-color: #ecf0f1; border-radius: 4px;">
+            <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 5px;">整數皀篑</div>
+            <div id="currentHour" style="font-size: 24px; font-weight: bold; color: #e74c3c;">00</div>
+          </div>
+          <div style="padding: 15px; background-color: #ecf0f1; border-radius: 4px;">
+            <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 5px;">整數分鐘</div>
+            <div id="currentMinute" style="font-size: 24px; font-weight: bold; color: #27ae60;">00</div>
+          </div>
+          <div style="padding: 15px; background-color: #ecf0f1; border-radius: 4px;">
+            <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 5px;">整數秒數</div>
+            <div id="currentSecond" style="font-size: 24px; font-weight: bold; color: #9b59b6;">00</div>
+          </div>
+          <div style="padding: 15px; background-color: #ecf0f1; border-radius: 4px;">
+            <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 5px;">今年第 N 天</div>
+            <div id="currentDayOfYear" style="font-size: 24px; font-weight: bold; color: #f39c12;">1</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- WAN IP 頁面 -->
+    <div class="page-content" id="wan-ip-page">
+      <div style="text-align: center; padding: 60px 20px;">
+        <div style="margin-bottom: 30px;">
+          <div style="font-size: 14px; color: #7f8c8d; margin-bottom: 15px;">你的公網 IP 位址：</div>
+          <div id="wanIpDisplay" style="font-size: 50px; font-weight: bold; color: #3498db; font-family: 'Courier New', monospace; margin-bottom: 20px; word-break: break-all;">正在加載...</div>
+          <div id="ipStatus" style="font-size: 14px; color: #7f8c8d;"></div>
+        </div>
+        <div style="margin-bottom: 30px; display: flex; gap: 10px; justify-content: center;">
+          <button onclick="refreshWanIP()" class="success" style="padding: 12px 30px; font-size: 16px;">還新 IP</button>
+          <button onclick="copyWanIP()" class="secondary" style="padding: 12px 30px; font-size: 16px;">複製 IP</button>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; max-width: 500px; margin: 0 auto;">
+          <div style="padding: 15px; background-color: #ecf0f1; border-radius: 4px;">
+            <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 8px;">你的 IPv4</div>
+            <div id="ipv4Display" style="font-size: 14px; color: #2c3e50; font-weight: bold; word-break: break-all;">正在加載...</div>
+          </div>
+          <div style="padding: 15px; background-color: #ecf0f1; border-radius: 4px;">
+            <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 8px;">你的 IPv6</div>
+            <div id="ipv6Display" style="font-size: 14px; color: #2c3e50; font-weight: bold; word-break: break-all;">N/A</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 計數器頁面 -->
+    <div class="page-content" id="counter-page">
+      <div class="counter-display" id="counterDisplay">0</div>
+      <div class="counter-controls">
+        <button onclick="decreaseCounter()" class="danger">-1</button>
+        <button onclick="resetCounter()" class="secondary">重置</button>
+        <button onclick="increaseCounter()" class="success">+1</button>
+      </div>
+    </div>
+
+    <!-- 碼表頁面 -->
+    <div class="page-content" id="stopwatch-page">
+      <div class="stopwatch-display" id="stopwatchDisplay">00:00:00.00</div>
+      <div class="stopwatch-controls">
+        <button onclick="startStopwatch()" class="success">開始</button>
+        <button onclick="pauseStopwatch()" class="secondary">暫停</button>
+        <button onclick="resetStopwatch()" class="danger">重置</button>
+      </div>
+    </div>
+
+    <!-- 字串替代工具頁面 -->
+    <div class="page-content" id="string-replace-page">
+      <div style="margin-bottom: 20px;">
+        <label>原始文本：</label>
+        <textarea id="originalText" style="width: 100%; height: 100px; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" placeholder="輸入要替代的文本..."></textarea>
+      </div>
+      <div style="margin-bottom: 20px;">
+        <label>搜尋（原字串）：</label>
+        <input type="text" id="findText" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" placeholder="輸入要搜尋的字串...">
+      </div>
+      <div style="margin-bottom: 20px;">
+        <label>替換成（新字串）：</label>
+        <input type="text" id="replaceText" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" placeholder="輸入替換成的字串...">
+      </div>
+      <div style="margin-bottom: 20px;">
+        <label>替換方式：</label>
+        <select id="replaceMode" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+          <option value="first">只替換第一個</option>
+          <option value="all" selected>替換全部</option>
+        </select>
+      </div>
+      <div style="margin-bottom: 20px;">
+        <button onclick="performReplace()" class="success" style="width: 100%; padding: 12px;">執行替換</button>
+      </div>
+      <div>
+        <label>結果：</label>
+        <textarea id="resultText" style="width: 100%; height: 100px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;" readonly placeholder="替換結果會展示在這裡..."></textarea>
+      </div>
+      <div style="margin-top: 15px; text-align: center;">
+        <button onclick="copyResult()" class="secondary">複製結果</button>
+      </div>
+    </div>
+
+    <!-- 字數統計頁面 -->
+    <div class="page-content" id="char-count-page">
+      <div style="margin-bottom: 20px;">
+        <label>輸入文本：</label>
+        <textarea id="countText" oninput="updateCharCount()" style="width: 100%; height: 150px; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" placeholder="輸入或貼上文本進行統計..."></textarea>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+        <div style="padding: 15px; background-color: #ecf0f1; border-radius: 4px;">
+          <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 5px;">總字數（含空格）</div>
+          <div id="totalCount" style="font-size: 24px; font-weight: bold; color: #3498db;">0</div>
+        </div>
+        <div style="padding: 15px; background-color: #ecf0f1; border-radius: 4px;">
+          <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 5px;">總字數（不含空格）</div>
+          <div id="charCount" style="font-size: 24px; font-weight: bold; color: #e74c3c;">0</div>
+        </div>
+        <div style="padding: 15px; background-color: #ecf0f1; border-radius: 4px;">
+          <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 5px;">詞彙數</div>
+          <div id="wordCount" style="font-size: 24px; font-weight: bold; color: #27ae60;">0</div>
+        </div>
+        <div style="padding: 15px; background-color: #ecf0f1; border-radius: 4px;">
+          <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 5px;">換行數</div>
+          <div id="lineCount" style="font-size: 24px; font-weight: bold; color: #9b59b6;">1</div>
+        </div>
+      </div>
+      <div style="text-align: center;">
+        <button onclick="clearCountText()" class="danger">清空文本</button>
+      </div>
+    </div>
+
+    <!-- 電腦狀態頁面 -->
+    <div class="page-content" id="system-status-page">
+      <div style="padding: 20px;">
+        <div style="margin-bottom: 30px;">
+          <h3 style="color: #2c3e50; margin-bottom: 15px;">系統訪文資訊</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div style="padding: 15px; background-color: #ecf0f1; border-radius: 4px;">
+              <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 5px;">测覽器</div>
+              <div id="browserInfo" style="font-size: 14px; color: #2c3e50; font-weight: bold;">責一一</div>
+            </div>
+            <div style="padding: 15px; background-color: #ecf0f1; border-radius: 4px;">
+              <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 5px;">操作系統</div>
+              <div id="osInfo" style="font-size: 14px; color: #2c3e50; font-weight: bold;">責一一</div>
+            </div>
+            <div style="padding: 15px; background-color: #ecf0f1; border-radius: 4px;">
+              <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 5px;">CPU 核心數</div>
+              <div id="cpuCores" style="font-size: 14px; color: #2c3e50; font-weight: bold;">責一一</div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="page-content" id="world-time-page">
+      <div style="margin-bottom: 20px;">
+        <input type="text" id="timeSearchBox" onkeyup="filterCities()" placeholder="搜尋城市..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+      </div>
+      <div id="worldTimeContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;"></div>
+    </div>
+  </div>
+
+  <script>
+    // 頁面切換邏輯
+    const pageItems = document.querySelectorAll('.page-item');
+    const pageContents = document.querySelectorAll('.page-content');
+    const pageTitle = document.getElementById('pageTitle');
+    const searchBox = document.getElementById('searchBox');
+
+    const pageNames = {
+      'current-time': '現在時間',
+      counter: '計數器',
+      stopwatch: '碼表',
+      'string-replace': '字串替代',
+      'char-count': '字數統計',
+      'world-time': '全球時間',
+      'system-status': '電腦狀態',
+      'wan-ip': 'WAN IP'
+    };
+
+    pageItems.forEach(item => {
+      item.addEventListener('click', function() {
+        const page = this.dataset.page;
+        switchPage(page);
+      });
+    });
+
+    function switchPage(page) {
+      pageItems.forEach(item => item.classList.remove('active'));
+      pageContents.forEach(content => content.classList.remove('active'));
+      
+      document.querySelector(`[data-page="${page}"]`).classList.add('active');
+      document.getElementById(`${page}-page`).classList.add('active');
+      pageTitle.textContent = pageNames[page];
+    }
+
+    // 搜尋過濾
+    searchBox.addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+      pageItems.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        item.style.display = text.includes(searchTerm) ? 'block' : 'none';
+      });
+    });
+
+    // 計數器邏輯
+    let counter = 0;
+
+    function increaseCounter() {
+      counter++;
+      document.getElementById('counterDisplay').textContent = counter;
+    }
+
+    function decreaseCounter() {
+      counter--;
+      document.getElementById('counterDisplay').textContent = counter;
+    }
+
+    function resetCounter() {
+      counter = 0;
+      document.getElementById('counterDisplay').textContent = counter;
+    }
+
+    // 碼表邏輯
+    let stopwatchInterval;
+    let stopwatchMilliseconds = 0;
+
+    function updateStopwatchDisplay() {
+      const totalSeconds = Math.floor(stopwatchMilliseconds / 100);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const secs = totalSeconds % 60;
+      const milliseconds = stopwatchMilliseconds % 100;
+      document.getElementById('stopwatchDisplay').textContent = 
+        `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
+    }
+
+    function startStopwatch() {
+      if (stopwatchInterval) return;
+      stopwatchInterval = setInterval(() => {
+        stopwatchMilliseconds += 1;
+        updateStopwatchDisplay();
+      }, 10);
+    }
+
+    function pauseStopwatch() {
+      clearInterval(stopwatchInterval);
+      stopwatchInterval = null;
+    }
+
+    function resetStopwatch() {
+      clearInterval(stopwatchInterval);
+      stopwatchInterval = null;
+      stopwatchMilliseconds = 0;
+      updateStopwatchDisplay();
+    }
+
+    // 字串替代邏輯
+    function performReplace() {
+      const originalText = document.getElementById('originalText').value;
+      const findText = document.getElementById('findText').value;
+      const replaceText = document.getElementById('replaceText').value;
+      const replaceMode = document.getElementById('replaceMode').value;
+
+      if (!findText) {
+        alert('請輸入要搜尋的字串');
+        return;
+      }
+
+      let result;
+      if (replaceMode === 'first') {
+        result = originalText.replace(findText, replaceText);
+      } else {
+        result = originalText.replaceAll(findText, replaceText);
+      }
+
+      document.getElementById('resultText').value = result;
+    }
+
+    function copyResult() {
+      const resultText = document.getElementById('resultText');
+      resultText.select();
+      document.execCommand('copy');
+      alert('已複製到剪貼板！');
+    }
+
+    // 字數統計邏輯
+    function updateCharCount() {
+      const text = document.getElementById('countText').value;
+      
+      // 總字數（含空格）
+      const totalCount = text.length;
+      
+      // 總字數（不含空格）
+      const charCount = text.replace(/\s/g, '').length;
+      
+      // 詞彙數（按空格分割）
+      const wordCount = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+      
+      // 換行數
+      const lineCount = text === '' ? 1 : text.split('\n').length;
+      
+      document.getElementById('totalCount').textContent = totalCount;
+      document.getElementById('charCount').textContent = charCount;
+      document.getElementById('wordCount').textContent = wordCount;
+      document.getElementById('lineCount').textContent = lineCount;
+    }
+
+    function clearCountText() {
+      document.getElementById('countText').value = '';
+      updateCharCount();
+    }
+
+    // 全球各地時間邏輯
+    const timeZones = [
+      { city: '倫敦', country: '英國', zone: 'Europe/London' },
+      { city: '巴黎', country: '法國', zone: 'Europe/Paris' },
+      { city: '東京', country: '日本', zone: 'Asia/Tokyo' },
+      { city: '香港', country: '中國', zone: 'Asia/Hong_Kong' },
+      { city: '台北', country: '台灣', zone: 'Asia/Taipei' },
+      { city: '上海', country: '中國', zone: 'Asia/Shanghai' },
+      { city: '曼谷', country: '泰國', zone: 'Asia/Bangkok' },
+      { city: '新加坡', country: '新加坡', zone: 'Asia/Singapore' },
+      { city: '杜拜', country: '阿拉伯联合酿長國', zone: 'Asia/Dubai' },
+      { city: '孟買', country: '印度', zone: 'Asia/Kolkata' },
+      { city: '伊斯坦堡', country: '土耳其', zone: 'Europe/Istanbul' },
+      { city: '紐約', country: '美國', zone: 'America/New_York' },
+      { city: '洛杉磯', country: '美國', zone: 'America/Los_Angeles' },
+      { city: '多倫多', country: '加拿大', zone: 'America/Toronto' },
+      { city: '聖保羅', country: '巴西', zone: 'America/Sao_Paulo' },
+      { city: '雪梨', country: '澳大利亞', zone: 'Australia/Sydney' },
+      { city: '奄數兰', country: '紐西蘭', zone: 'Pacific/Auckland' },
+      { city: '夏威夷', country: '美國', zone: 'Pacific/Honolulu' }
+    ];
+
+    function updateWorldTime() {
+      const container = document.getElementById('worldTimeContainer');
+      const searchTerm = document.getElementById('timeSearchBox').value.toLowerCase();
+      container.innerHTML = '';
+
+      timeZones.forEach(({ city, country, zone }) => {
+        // 過溺精選
+        if (!city.toLowerCase().includes(searchTerm) && !country.toLowerCase().includes(searchTerm)) {
+          return;
+        }
+
+        const formatter = new Intl.DateTimeFormat('zh-TW', {
+          timeZone: zone,
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true
+        });
+
+        const dateStr = formatter.format(new Date());
+        
+        const timeCard = document.createElement('div');
+        timeCard.style.cssText = 'padding: 15px; background-color: #ecf0f1; border-radius: 4px; text-align: center;';
+        timeCard.innerHTML = `
+          <div style="font-weight: bold; margin-bottom: 10px; color: #2c3e50;">${city}(${country})</div>
+          <div style="font-size: 18px; color: #3498db; font-family: monospace; font-weight: bold;">${dateStr}</div>
+        `;
+        container.appendChild(timeCard);
+      });
+    }
+
+    function filterCities() {
+      updateWorldTime();
+    }
+
+    // 現在時間邏輯
+    function updateCurrentTime() {
+      const now = new Date();
+      
+      // 時間的整数部分
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      
+      // 完整的時時:8f:8fdu秒
+      document.getElementById('currentClock').textContent = `${hours}:${minutes}:${seconds}`;
+      document.getElementById('currentHour').textContent = hours;
+      document.getElementById('currentMinute').textContent = minutes;
+      document.getElementById('currentSecond').textContent = seconds;
+      
+      // 日期
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const date = String(now.getDate()).padStart(2, '0');
+      document.getElementById('currentDate').textContent = `${year}年${month}月${date}日`;
+      
+      // 星期
+      const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+      const weekday = weekdays[now.getDay()];
+      document.getElementById('currentWeekday').textContent = weekday;
+      
+      // 今年第 N 天
+      const startOfYear = new Date(year, 0, 0);
+      const diff = now - startOfYear;
+      const dayOfYear = Math.floor(diff / (24 * 60 * 60 * 1000));
+      document.getElementById('currentDayOfYear').textContent = dayOfYear;
+    }
+
+    // 初始化現在時間
+    updateCurrentTime();
+    // 每秒更新一次
+    setInterval(updateCurrentTime, 1000);
+    
+    // 電腦狀態邏輯
+    function updateSystemStatus() {
+      // 测覽器信息
+      const userAgent = navigator.userAgent;
+      let browser = '未知';
+      if (userAgent.indexOf('Firefox') > -1) {
+        browser = 'Firefox';
+      } else if (userAgent.indexOf('Chrome') > -1) {
+        browser = 'Chrome';
+      } else if (userAgent.indexOf('Safari') > -1) {
+        browser = 'Safari';
+      } else if (userAgent.indexOf('Edge') > -1) {
+        browser = 'Edge';
+      }
+      document.getElementById('browserInfo').textContent = browser;
+
+      // 操作系統
+      let os = '未知';
+      if (userAgent.indexOf('Windows') > -1) {
+        os = 'Windows';
+      } else if (userAgent.indexOf('Mac') > -1) {
+        os = 'macOS';
+      } else if (userAgent.indexOf('Linux') > -1) {
+        os = 'Linux';
+      } else if (userAgent.indexOf('iPhone') > -1 || userAgent.indexOf('iPad') > -1) {
+        os = 'iOS';
+      } else if (userAgent.indexOf('Android') > -1) {
+        os = 'Android';
+      }
+      document.getElementById('osInfo').textContent = os;
+
+      // CPU 核心數
+      const cores = navigator.hardwareConcurrency || '未知';
+      document.getElementById('cpuCores').textContent = cores;
+    }
+
+    // 初始化電腦狀態
+    updateSystemStatus();
+    // 每 1 秒更新一次
+    setInterval(updateSystemStatus, 1000);
+
+    // WAN IP 邏輯
+    function refreshWanIP() {
+      getWanIP();
+    }
+
+    function copyWanIP() {
+      const wanIp = document.getElementById('wanIpDisplay').textContent;
+      if (wanIp === '正在加載...' || wanIp === '無法加載') {
+        alert('請先获取 IP 位綀');
+        return;
+      }
+      navigator.clipboard.writeText(wanIp).then(() => {
+        //alert('已複製到剪貼板：' + wanIp);
+      }).catch(err => {
+        alert('複製失敗：' + err.message);
+      });
+    }
+
+    function getWanIP() {
+      document.getElementById('wanIpDisplay').textContent = '正在加載...';
+      document.getElementById('ipStatus').textContent = '';
+      document.getElementById('ipv4Display').textContent = '正在加載...';
+      document.getElementById('ipv6Display').textContent = '正在加載...';
+
+      // 使用 ipify API 获取 IPv4
+      fetch('https://api.ipify.org?format=json')
+        .then(response => response.json())
+        .then(data => {
+          const ipv4 = data.ip;
+          document.getElementById('wanIpDisplay').textContent = ipv4;
+          document.getElementById('ipv4Display').textContent = ipv4;
+          document.getElementById('ipStatus').textContent = '已成功取得';
+        })
+        .catch(error => {
+          document.getElementById('wanIpDisplay').textContent = '無法加載';
+          document.getElementById('ipStatus').textContent = '錯誤：' + error.message;
+        });
+
+      // 使用 ipify API 获取 IPv6
+      fetch('https://api64.ipify.org?format=json')
+        .then(response => response.json())
+        .then(data => {
+          const ipv6 = data.ip;
+          document.getElementById('ipv6Display').textContent = ipv6;
+        })
+        .catch(error => {
+          document.getElementById('ipv6Display').textContent = 'N/A';
+        });
+    }
+
+    // 頁面加載時自動获取 WAN IP
+    getWanIP();
+    
+    // 初始化全球時間
+    updateWorldTime();
+    // 每秒更新一次
+    setInterval(updateWorldTime, 1000);
+  </script>
+</body>
+</html>
