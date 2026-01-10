@@ -1,290 +1,310 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
- <meta charset="UTF-8">
- <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <title>工具集</title>
- <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
- <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
- <style>
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>工具集</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-  body {
-    font-family: Arial, sans-serif;
-    display: flex;
-    height: 100vh;
-    background-color: #f5f5f5;
-  }
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      height: 100vh;
+      background-color: #f5f5f5;
+    }
 
-  /* 左側面板 */
-  .sidebar {
-    width: 250px;
-    background-color: #2c3e50;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-  }
+    /* 左側面板 */
+    .sidebar {
+      width: 250px;
+      background-color: #2c3e50;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    }
 
-  .sidebar-header {
-    padding: 20px;
-    border-bottom: 1px solid #34495e;
-  }
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid #34495e;
+    }
 
-  .sidebar-header h1 {
-    font-size: 18px;
-    margin-bottom: 15px;
-  }
+    .sidebar-header h1 {
+      font-size: 18px;
+      margin-bottom: 15px;
+    }
 
-  .search-box {
-    width: 100%;
-    padding: 10px;
-    border: none;
-    border-radius: 4px;
-    background-color: #34495e;
-    color: white;
-  }
+    .search-box {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      background-color: #34495e;
+      color: white;
+    }
 
-  .search-box::placeholder {
-    color: #bdc3c7;
-  }
+    .search-box::placeholder {
+      color: #bdc3c7;
+    }
 
-  .sidebar-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 10px 0;
-  }
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 0;
+    }
 
-  .page-item {
-    padding: 15px 20px;
-    cursor: pointer;
-    border-left: 4px solid transparent;
-    transition: all 0.3s ease;
-  }
+    /* 自定義滾動條樣式 */
+    .sidebar-content::-webkit-scrollbar {
+      width: 8px;
+    }
 
-  .page-item:hover {
-    background-color: #34495e;
-  }
+    .sidebar-content::-webkit-scrollbar-track {
+      background: transparent;
+    }
 
-  .page-item.active {
-    background-color: #3498db;
-    border-left-color: #e74c3c;
-  }
+    .sidebar-content::-webkit-scrollbar-thumb {
+      background: #34495e;
+      border-radius: 4px;
+    }
 
-  /* 右側內容 */
-  .main-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-  }
+    .sidebar-content::-webkit-scrollbar-thumb:hover {
+      background: #7f8c8d;
+    }
 
-  .content-header {
-    margin-bottom: 20px;
-  }
+    .page-item {
+      padding: 15px 20px;
+      cursor: pointer;
+      border-left: 4px solid transparent;
+      transition: all 0.3s ease;
+    }
 
-  .content-header h2 {
-    font-size: 28px;
-    color: #2c3e50;
-  }
+    .page-item:hover {
+      background-color: #34495e;
+    }
 
-  .page-content {
-    flex: 1;
-    background-color: white;
-    border-radius: 8px;
-    padding: 30px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    display: none;
-  }
+    .page-item.active {
+      background-color: #3498db;
+      border-left-color: #e74c3c;
+    }
 
-  .page-content.active {
-    display: block;
-  }
+    /* 右側內容 */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+    }
 
-  /* 計時器樣式 */
-  .timer-display {
-    font-size: 48px;
-    font-weight: bold;
-    text-align: center;
-    color: #3498db;
-    margin: 30px 0;
-  }
+    .content-header {
+      margin-bottom: 20px;
+    }
 
-  .timer-controls {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    margin-top: 20px;
-  }
+    .content-header h2 {
+      font-size: 28px;
+      color: #2c3e50;
+    }
 
-  /* 計數器樣式 */
-  .counter-display {
-    font-size: 64px;
-    font-weight: bold;
-    text-align: center;
-    color: #e74c3c;
-    margin: 40px 0;
-  }
+    .page-content {
+      flex: 1;
+      background-color: white;
+      border-radius: 8px;
+      padding: 30px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      display: none;
+    }
 
-  .counter-controls {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-  }
+    .page-content.active {
+      display: block;
+    }
 
-  /* 碼表樣式 */
-  .stopwatch-display {
-    font-size: 48px;
-    font-weight: bold;
-    text-align: center;
-    color: #27ae60;
-    margin: 30px 0;
-    font-family: 'Courier New', monospace;
-  }
+    /* 計時器樣式 */
+    .timer-display {
+      font-size: 48px;
+      font-weight: bold;
+      text-align: center;
+      color: #3498db;
+      margin: 30px 0;
+    }
 
-  .stopwatch-controls {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    margin-top: 20px;
-  }
+    .timer-controls {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
 
-  /* 按鈕樣式 */
-  button {
-    padding: 10px 20px;
-    font-size: 14px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    background-color: #3498db;
-    color: white;
-    transition: background-color 0.3s ease;
-  }
+    /* 計數器樣式 */
+    .counter-display {
+      font-size: 64px;
+      font-weight: bold;
+      text-align: center;
+      color: #e74c3c;
+      margin: 40px 0;
+    }
 
-  button:hover {
-    background-color: #2980b9;
-  }
+    .counter-controls {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+    }
 
-  button.danger {
-    background-color: #e74c3c;
-  }
+    /* 碼表樣式 */
+    .stopwatch-display {
+      font-size: 48px;
+      font-weight: bold;
+      text-align: center;
+      color: #27ae60;
+      margin: 30px 0;
+      font-family: 'Courier New', monospace;
+    }
 
-  button.danger:hover {
-    background-color: #c0392b;
-  }
+    .stopwatch-controls {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
 
-  button.success {
-    background-color: #27ae60;
-  }
+    /* 按鈕樣式 */
+    button {
+      padding: 10px 20px;
+      font-size: 14px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background-color: #3498db;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
 
-  button.success:hover {
-    background-color: #229954;
-  }
+    button:hover {
+      background-color: #2980b9;
+    }
 
-  button.secondary {
-    background-color: #95a5a6;
-  }
+    button.danger {
+      background-color: #e74c3c;
+    }
 
-  button.secondary:hover {
-    background-color: #7f8c8d;
-  }
+    button.danger:hover {
+      background-color: #c0392b;
+    }
 
-  /* 記事本樣式 */
-  .note-container {
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    gap: 20px;
-    height: 100%;
-  }
+    button.success {
+      background-color: #27ae60;
+    }
 
-  .notes-list {
-    border-right: 1px solid #ddd;
-    overflow-y: auto;
-    padding-right: 15px;
-  }
+    button.success:hover {
+      background-color: #229954;
+    }
 
-  .note-item {
-    padding: 12px;
-    background-color: #ecf0f1;
-    border-radius: 4px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    border-left: 4px solid #3498db;
-    transition: all 0.3s ease;
-  }
+    button.secondary {
+      background-color: #95a5a6;
+    }
 
-  .note-item:hover {
-    background-color: #d5dbdb;
-  }
+    button.secondary:hover {
+      background-color: #7f8c8d;
+    }
 
-  .note-item.active {
-    background-color: #3498db;
-    color: white;
-    border-left-color: #e74c3c;
-  }
+    /* 記事本樣式 */
+    .note-container {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 20px;
+      height: 100%;
+    }
 
-  .note-item-title {
-    font-weight: bold;
-    margin-bottom: 5px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
+    .notes-list {
+      border-right: 1px solid #ddd;
+      overflow-y: auto;
+      padding-right: 15px;
+    }
 
-  .note-item-date {
-    font-size: 12px;
-    opacity: 0.7;
-  }
+    .note-item {
+      padding: 12px;
+      background-color: #ecf0f1;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      border-left: 4px solid #3498db;
+      transition: all 0.3s ease;
+    }
 
-  .note-editor {
-    display: flex;
-    flex-direction: column;
-  }
+    .note-item:hover {
+      background-color: #d5dbdb;
+    }
 
-  .note-title-input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    margin-bottom: 10px;
-    font-size: 16px;
-    font-weight: bold;
-  }
+    .note-item.active {
+      background-color: #3498db;
+      color: white;
+      border-left-color: #e74c3c;
+    }
 
-  .note-content-textarea {
-    flex: 1;
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    margin-bottom: 10px;
-    resize: vertical;
-    font-family: 'Courier New', monospace;
-  }
+    .note-item-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
 
-  .note-controls {
-    display: flex;
-    gap: 10px;
-  }
+    .note-item-date {
+      font-size: 12px;
+      opacity: 0.7;
+    }
 
-  .note-controls button {
-    flex: 1;
-  }
+    .note-editor {
+      display: flex;
+      flex-direction: column;
+    }
 
-  .empty-state {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    color: #7f8c8d;
-    font-size: 16px;
-  }
- </style>
+    .note-title-input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .note-content-textarea {
+      flex: 1;
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      resize: vertical;
+      font-family: 'Courier New', monospace;
+    }
+
+    .note-controls {
+      display: flex;
+      gap: 10px;
+    }
+
+    .note-controls button {
+      flex: 1;
+    }
+
+    .empty-state {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #7f8c8d;
+      font-size: 16px;
+    }
+  </style>
 </head>
+
 <body>
   <!-- 左側面板 -->
   <div class="sidebar">
@@ -302,8 +322,9 @@
       <div class="page-item" data-page="system-status">電腦狀態</div>
       <div class="page-item" data-page="wan-ip">WAN IP</div>
       <div class="page-item" data-page="notepad">記事本</div>
-      <div class="page-item" data-page="qrcode">二維碼</div>
+      <div class="page-item" data-page="qrcode">網址或文字轉QR</div>
       <div class="page-item" data-page="qrdecode">QR轉網址</div>
+      <div class="page-item" data-page="timer-reminder">定時提醒</div>
     </div>
   </div>
 
@@ -317,7 +338,9 @@
     <div class="page-content active" id="current-time-page">
       <div style="text-align: center; padding: 40px;">
         <div id="currentAmPm" style="font-size: 32px; font-weight: bold; color: #e74c3c; margin-bottom: 10px;">上午</div>
-        <div id="currentClock" style="font-size: 72px; font-weight: bold; color: #3498db; margin-bottom: 30px; font-family: 'Courier New', monospace;">00:00:00</div>
+        <div id="currentClock"
+          style="font-size: 72px; font-weight: bold; color: #3498db; margin-bottom: 30px; font-family: 'Courier New', monospace;">
+          00:00:00</div>
         <div id="currentDate" style="font-size: 24px; color: #2c3e50; margin-bottom: 20px;"></div>
         <div id="currentWeekday" style="font-size: 18px; color: #7f8c8d; margin-bottom: 30px;"></div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 500px; margin: 0 auto;">
@@ -345,7 +368,9 @@
       <div style="text-align: center; padding: 60px 20px;">
         <div style="margin-bottom: 30px;">
           <div style="font-size: 14px; color: #7f8c8d; margin-bottom: 15px;">你的公網 IP 位址：</div>
-          <div id="wanIpDisplay" style="font-size: 50px; font-weight: bold; color: #3498db; font-family: 'Courier New', monospace; margin-bottom: 20px; word-break: break-all;">正在加載...</div>
+          <div id="wanIpDisplay"
+            style="font-size: 50px; font-weight: bold; color: #3498db; font-family: 'Courier New', monospace; margin-bottom: 20px; word-break: break-all;">
+            正在加載...</div>
           <div id="ipStatus" style="font-size: 14px; color: #7f8c8d;"></div>
         </div>
         <div style="margin-bottom: 30px; display: flex; gap: 10px; justify-content: center;">
@@ -355,11 +380,13 @@
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; max-width: 500px; margin: 0 auto;">
           <div style="padding: 15px; background-color: #ecf0f1; border-radius: 4px;">
             <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 8px;">你的 IPv4</div>
-            <div id="ipv4Display" style="font-size: 14px; color: #2c3e50; font-weight: bold; word-break: break-all;">正在加載...</div>
+            <div id="ipv4Display" style="font-size: 14px; color: #2c3e50; font-weight: bold; word-break: break-all;">
+              正在加載...</div>
           </div>
           <div style="padding: 15px; background-color: #ecf0f1; border-radius: 4px;">
             <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 8px;">你的 IPv6</div>
-            <div id="ipv6Display" style="font-size: 14px; color: #2c3e50; font-weight: bold; word-break: break-all;">N/A</div>
+            <div id="ipv6Display" style="font-size: 14px; color: #2c3e50; font-weight: bold; word-break: break-all;">N/A
+            </div>
           </div>
         </div>
       </div>
@@ -388,15 +415,19 @@
     <div class="page-content" id="string-replace-page">
       <div style="margin-bottom: 20px;">
         <label>原始文本：</label>
-        <textarea id="originalText" style="width: 100%; height: 100px; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" placeholder="輸入要替代的文本..."></textarea>
+        <textarea id="originalText"
+          style="width: 100%; height: 100px; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"
+          placeholder="輸入要替代的文本..."></textarea>
       </div>
       <div style="margin-bottom: 20px;">
         <label>搜尋（原字串）：</label>
-        <input type="text" id="findText" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" placeholder="輸入要搜尋的字串...">
+        <input type="text" id="findText" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"
+          placeholder="輸入要搜尋的字串...">
       </div>
       <div style="margin-bottom: 20px;">
         <label>替換成（新字串）：</label>
-        <input type="text" id="replaceText" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" placeholder="輸入替換成的字串...">
+        <input type="text" id="replaceText"
+          style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" placeholder="輸入替換成的字串...">
       </div>
       <div style="margin-bottom: 20px;">
         <label>替換方式：</label>
@@ -410,7 +441,9 @@
       </div>
       <div>
         <label>結果：</label>
-        <textarea id="resultText" style="width: 100%; height: 100px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;" readonly placeholder="替換結果會展示在這裡..."></textarea>
+        <textarea id="resultText"
+          style="width: 100%; height: 100px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"
+          readonly placeholder="替換結果會展示在這裡..."></textarea>
       </div>
       <div style="margin-top: 15px; text-align: center;">
         <button onclick="copyResult()" class="secondary">複製結果</button>
@@ -421,7 +454,9 @@
     <div class="page-content" id="char-count-page">
       <div style="margin-bottom: 20px;">
         <label>輸入文本：</label>
-        <textarea id="countText" oninput="updateCharCount()" style="width: 100%; height: 150px; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" placeholder="輸入或貼上文本進行統計..."></textarea>
+        <textarea id="countText" oninput="updateCharCount()"
+          style="width: 100%; height: 150px; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"
+          placeholder="輸入或貼上文本進行統計..."></textarea>
       </div>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
         <div style="padding: 15px; background-color: #ecf0f1; border-radius: 4px;">
@@ -471,22 +506,27 @@
     </div>
     <div class="page-content" id="world-time-page">
       <div style="margin-bottom: 20px;">
-        <input type="text" id="timeSearchBox" onkeyup="filterCities()" placeholder="搜尋城市..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+        <input type="text" id="timeSearchBox" onkeyup="filterCities()" placeholder="搜尋城市..."
+          style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
       </div>
-      <div id="worldTimeContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;"></div>
+      <div id="worldTimeContainer"
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;"></div>
     </div>
 
     <!-- 記事本頁面 -->
     <div class="page-content" id="notepad-page">
       <div style="height: 100%; display: flex; flex-direction: column;">
         <div style="margin-bottom: 15px;">
-          <button onclick="createNewNote()" class="success" style="width: 100%; padding: 12px; font-size: 16px;">+ 新增筆記</button>
+          <button onclick="createNewNote()" class="success" style="width: 100%; padding: 12px; font-size: 16px;">+
+            新增筆記</button>
         </div>
         <div class="note-container" style="flex: 1;">
           <div class="notes-list" id="notesList"></div>
           <div id="noteEditor" class="note-editor" style="display: none;">
-            <input type="text" id="noteTitle" class="note-title-input" placeholder="輸入筆記標題..." onchange="updateCurrentNote()" oninput="updateCurrentNote()">
-            <textarea id="noteContent" class="note-content-textarea" placeholder="輸入筆記內容..." onchange="updateCurrentNote()" oninput="updateCurrentNote()"></textarea>
+            <input type="text" id="noteTitle" class="note-title-input" placeholder="輸入筆記標題..."
+              onchange="updateCurrentNote()" oninput="updateCurrentNote()">
+            <textarea id="noteContent" class="note-content-textarea" placeholder="輸入筆記內容..."
+              onchange="updateCurrentNote()" oninput="updateCurrentNote()"></textarea>
             <div class="note-controls">
               <button onclick="deleteCurrentNote()" class="danger">刪除</button>
               <button onclick="closeNoteEditor()" class="secondary">關閉</button>
@@ -503,11 +543,14 @@
         <div style="width: 100%; max-width: 600px;">
           <div style="margin-bottom: 20px;">
             <label style="display: block; margin-bottom: 10px; font-weight: bold;">輸入連結或文字：</label>
-            <input type="text" id="qrcodeInput" placeholder="輸入URL或任意文字..." style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;" oninput="generateQRCode()">
+            <input type="text" id="qrcodeInput" placeholder="輸入URL或任意文字..."
+              style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;"
+              oninput="generateQRCode()">
           </div>
-          
+
           <div style="text-align: center; margin-bottom: 20px;">
-            <div id="qrcodeContainer" style="display: flex; justify-content: center; align-items: center; min-height: 300px; background-color: #f5f5f5; border-radius: 4px; padding: 20px;">
+            <div id="qrcodeContainer"
+              style="display: flex; justify-content: center; align-items: center; min-height: 300px; background-color: #f5f5f5; border-radius: 4px; padding: 20px;">
               <div style="color: #7f8c8d; font-size: 14px;">輸入連結後將自動生成二維碼</div>
             </div>
           </div>
@@ -520,7 +563,9 @@
 
           <div style="margin-top: 20px; padding: 15px; background-color: #ecf0f1; border-radius: 4px;">
             <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 5px;">當前輸入文字</div>
-            <div id="qrcodeText" style="font-size: 13px; color: #2c3e50; word-break: break-all; max-height: 80px; overflow-y: auto;">無</div>
+            <div id="qrcodeText"
+              style="font-size: 13px; color: #2c3e50; word-break: break-all; max-height: 80px; overflow-y: auto;">無
+            </div>
           </div>
         </div>
       </div>
@@ -534,36 +579,46 @@
             <div style="display: flex; gap: 10px; margin-bottom: 15px;">
               <div style="flex: 1;">
                 <label style="display: block; margin-bottom: 10px; font-weight: bold;">上傳QR Code圖片：</label>
-                <input type="file" id="qrImageInput" accept="image/*" onchange="scanQRCode()" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                <input type="file" id="qrImageInput" accept="image/*" onchange="scanQRCode()"
+                  style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
               </div>
               <div style="flex: 1;">
                 <label style="display: block; margin-bottom: 10px; font-weight: bold;">或使用攝像頭：</label>
-                <button id="cameraToggleBtn" onclick="toggleCamera()" class="success" style="width: 100%; padding: 12px; font-size: 14px;">打開攝像頭</button>
+                <button id="cameraToggleBtn" onclick="toggleCamera()" class="success"
+                  style="width: 100%; padding: 12px; font-size: 14px;">打開攝像頭</button>
               </div>
             </div>
           </div>
 
           <div id="cameraContainer" style="display: none; margin-bottom: 20px; text-align: center;">
-            <video id="cameraVideo" style="width: 100%; max-width: 400px; border-radius: 4px; background-color: #000; display: block; margin: 0 auto 10px;"></video>
+            <video id="cameraVideo"
+              style="width: 100%; max-width: 400px; border-radius: 4px; background-color: #000; display: block; margin: 0 auto 10px;"></video>
             <canvas id="cameraCanvas" style="display: none;"></canvas>
             <button onclick="toggleCamera()" class="danger" style="width: 100%; padding: 12px;">關閉攝像頭</button>
           </div>
 
           <div style="text-align: center; margin-bottom: 20px;">
-            <div id="qrImagePreview" style="display: none; max-width: 300px; margin: 0 auto; border-radius: 4px; overflow: hidden;">
+            <div id="qrImagePreview"
+              style="display: none; max-width: 300px; margin: 0 auto; border-radius: 4px; overflow: hidden;">
               <img id="previewImg" style="width: 100%; height: auto; display: block;">
             </div>
-            <div id="qrScanStatus" style="color: #7f8c8d; font-size: 14px; min-height: 40px; display: flex; align-items: center; justify-content: center;">選擇圖片或打開攝像頭進行掃描</div>
+            <div id="qrScanStatus"
+              style="color: #7f8c8d; font-size: 14px; min-height: 40px; display: flex; align-items: center; justify-content: center;">
+              選擇圖片或打開攝像頭進行掃描</div>
           </div>
 
-          <div id="qrDecodeResult" style="display: none; padding: 20px; background-color: #ecf0f1; border-radius: 4px; margin-bottom: 20px;">
+          <div id="qrDecodeResult"
+            style="display: none; padding: 20px; background-color: #ecf0f1; border-radius: 4px; margin-bottom: 20px;">
             <div style="margin-bottom: 15px;">
               <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 5px;">解析結果：</div>
-              <div id="decodedText" style="font-size: 14px; color: #2c3e50; word-break: break-all; padding: 10px; background-color: white; border-radius: 4px; border: 1px solid #ddd; min-height: 50px;"></div>
+              <div id="decodedText"
+                style="font-size: 14px; color: #2c3e50; word-break: break-all; padding: 10px; background-color: white; border-radius: 4px; border: 1px solid #ddd; min-height: 50px;">
+              </div>
             </div>
             <div style="display: flex; gap: 10px;">
               <button onclick="copyDecodedText()" class="secondary" style="flex: 1; padding: 10px;">複製文字</button>
-              <button onclick="openDecodedURL()" id="openUrlBtn" class="success" style="flex: 1; padding: 10px; display: none;">打開連結</button>
+              <button onclick="openDecodedURL()" id="openUrlBtn" class="success"
+                style="flex: 1; padding: 10px; display: none;">打開連結</button>
               <button onclick="clearQRDecode()" class="danger" style="flex: 1; padding: 10px;">清空</button>
             </div>
           </div>
@@ -575,6 +630,103 @@
               <li>確保QR Code清晰可見，光線充足</li>
               <li>攝像頭需要瀏覽器權限許可</li>
               <li>支持解析URL和任意文字內容</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 定時提醒頁面 -->
+    <div class="page-content" id="timer-reminder-page">
+      <div style="padding: 30px; display: flex; flex-direction: column; align-items: center;">
+        <div style="width: 100%; max-width: 600px;">
+          <div style="margin-bottom: 20px;">
+            <h3 style="color: #2c3e50; margin-bottom: 15px;">設定提醒時間</h3>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+              <div>
+                <label style="display: block; margin-bottom: 5px; font-size: 12px; color: #7f8c8d;">年份</label>
+                <input type="number" id="reminderYear" min="2026" max="2100"
+                  style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+              </div>
+              <div>
+                <label style="display: block; margin-bottom: 5px; font-size: 12px; color: #7f8c8d;">月份</label>
+                <input type="number" id="reminderMonth" min="1" max="12"
+                  style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+              <div>
+                <label style="display: block; margin-bottom: 5px; font-size: 12px; color: #7f8c8d;">日期</label>
+                <input type="number" id="reminderDay" min="1" max="31"
+                  style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+              </div>
+              <div>
+                <label style="display: block; margin-bottom: 5px; font-size: 12px; color: #7f8c8d;">上下午</label>
+                <select id="reminderAmPm"
+                  style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                  <option value="am">上午</option>
+                  <option value="pm">下午</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+              <div>
+                <label style="display: block; margin-bottom: 5px; font-size: 12px; color: #7f8c8d;">時 (00-12)</label>
+                <input type="number" id="reminderHour" min="1" max="12"
+                  style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+              </div>
+              <div>
+                <label style="display: block; margin-bottom: 5px; font-size: 12px; color: #7f8c8d;">分 (00-59)</label>
+                <input type="number" id="reminderMinute" min="0" max="59"
+                  style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+              </div>
+              <div>
+                <label style="display: block; margin-bottom: 5px; font-size: 12px; color: #7f8c8d;">秒 (00-59)</label>
+                <input type="number" id="reminderSecond" min="0" max="59"
+                  style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+              </div>
+              <div>
+                <label style="display: block; margin-bottom: 5px; font-size: 12px; color: #7f8c8d;">毫秒 (0-999)</label>
+                <input type="number" id="reminderMillisecond" min="0" max="999"
+                  style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+              </div>
+            </div>
+
+            <div id="reminderControls">
+              <button onclick="setTimerReminder()" class="success" style="width: 100%; padding: 12px;">設定提醒</button>
+            </div>
+          </div>
+
+          <div style="padding: 20px; background-color: #ecf0f1; border-radius: 4px; margin-bottom: 20px;">
+            <div style="margin-bottom: 10px;">
+              <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 5px;">設定的提醒時間：</div>
+              <div id="reminderSetTime" style="font-size: 14px; color: #2c3e50; font-weight: bold; min-height: 20px;">
+              </div>
+            </div>
+            <div>
+              <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 5px;">狀態：</div>
+              <div id="reminderSetStatus" style="font-size: 14px; color: #e74c3c; font-weight: bold;">未設定</div>
+            </div>
+          </div>
+
+          <div id="reminderCountdown"
+            style="display: none; padding: 20px; background-color: #e8f8f5; border-radius: 4px; border: 2px solid #27ae60; margin-bottom: 20px;">
+            <div
+              style="font-size: 16px; color: #27ae60; text-align: center; font-weight: bold; font-family: 'Courier New', monospace;">
+              倒計時加載中...
+            </div>
+          </div>
+
+          <div style="padding: 15px; background-color: #ecf0f1; border-radius: 4px; font-size: 12px; color: #7f8c8d;">
+            <div style="margin-bottom: 8px;"><strong>提示：</strong></div>
+            <ul style="margin-left: 20px;">
+              <li>請設定未來的時間</li>
+              <li>時間到達時會發出"逼逼"聲提醒</li>
+              <li>可以精確到毫秒級別</li>
+              <li>關閉頁面後提醒將停止</li>
             </ul>
           </div>
         </div>
@@ -600,11 +752,12 @@
       'wan-ip': 'WAN IP',
       notepad: '記事本',
       qrcode: '二維碼',
-      qrdecode: 'QR轉網址'
+      qrdecode: 'QR轉網址',
+      'timer-reminder': '定時提醒'
     };
 
     pageItems.forEach(item => {
-      item.addEventListener('click', function() {
+      item.addEventListener('click', function () {
         const page = this.dataset.page;
         switchPage(page);
       });
@@ -613,14 +766,14 @@
     function switchPage(page) {
       pageItems.forEach(item => item.classList.remove('active'));
       pageContents.forEach(content => content.classList.remove('active'));
-      
+
       document.querySelector(`[data-page="${page}"]`).classList.add('active');
       document.getElementById(`${page}-page`).classList.add('active');
       pageTitle.textContent = pageNames[page];
     }
 
     // 搜尋過濾
-    searchBox.addEventListener('input', function() {
+    searchBox.addEventListener('input', function () {
       const searchTerm = this.value.toLowerCase();
       pageItems.forEach(item => {
         const text = item.textContent.toLowerCase();
@@ -656,7 +809,7 @@
       const minutes = Math.floor((totalSeconds % 3600) / 60);
       const secs = totalSeconds % 60;
       const milliseconds = stopwatchMilliseconds % 100;
-      document.getElementById('stopwatchDisplay').textContent = 
+      document.getElementById('stopwatchDisplay').textContent =
         `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
     }
 
@@ -712,19 +865,19 @@
     // 字數統計邏輯
     function updateCharCount() {
       const text = document.getElementById('countText').value;
-      
+
       // 總字數（含空格）
       const totalCount = text.length;
-      
+
       // 總字數（不含空格）
       const charCount = text.replace(/\s/g, '').length;
-      
+
       // 詞彙數（按空格分割）
       const wordCount = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
-      
+
       // 換行數
       const lineCount = text === '' ? 1 : text.split('\n').length;
-      
+
       document.getElementById('totalCount').textContent = totalCount;
       document.getElementById('charCount').textContent = charCount;
       document.getElementById('wordCount').textContent = wordCount;
@@ -781,7 +934,7 @@
         });
 
         const dateStr = formatter.format(new Date());
-        
+
         const timeCard = document.createElement('div');
         timeCard.style.cssText = 'padding: 15px; background-color: #ecf0f1; border-radius: 4px; text-align: center;';
         timeCard.innerHTML = `
@@ -799,36 +952,36 @@
     // 現在時間邏輯
     function updateCurrentTime() {
       const now = new Date();
-      
+
       // 取得 24 小時制的小時
       const hours24 = now.getHours();
-      
+
       // 轉換為 12 小時制
       const amPm = hours24 >= 12 ? '下午' : '上午';
       const hours12 = hours24 % 12 === 0 ? 12 : hours24 % 12;
-      
+
       // 時間的整数部分
       const minutes = String(now.getMinutes()).padStart(2, '0');
       const seconds = String(now.getSeconds()).padStart(2, '0');
-      
+
       // 完整的時間顯示（12小時制）
       document.getElementById('currentAmPm').textContent = amPm;
       document.getElementById('currentClock').textContent = `${String(hours12).padStart(2, '0')}:${minutes}:${seconds}`;
       document.getElementById('currentHour').textContent = String(hours12).padStart(2, '0');
       document.getElementById('currentMinute').textContent = minutes;
       document.getElementById('currentSecond').textContent = seconds;
-      
+
       // 日期
       const year = now.getFullYear();
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const date = String(now.getDate()).padStart(2, '0');
       document.getElementById('currentDate').textContent = `${year}年${month}月${date}日`;
-      
+
       // 星期
       const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
       const weekday = weekdays[now.getDay()];
       document.getElementById('currentWeekday').textContent = weekday;
-      
+
       // 今年第 N 天
       const startOfYear = new Date(year, 0, 0);
       const diff = now - startOfYear;
@@ -840,7 +993,7 @@
     updateCurrentTime();
     // 每秒更新一次
     setInterval(updateCurrentTime, 1000);
-    
+
     // 電腦狀態邏輯
     function updateSystemStatus() {
       // 测覽器信息
@@ -934,7 +1087,7 @@
 
     // 頁面加載時自動获取 WAN IP
     getWanIP();
-    
+
     // 初始化全球時間
     updateWorldTime();
     // 每秒更新一次
@@ -970,7 +1123,7 @@
           noteItem.classList.add('active');
         }
         noteItem.onclick = () => selectNote(note.id);
-        
+
         const date = new Date(note.updated).toLocaleDateString('zh-TW');
         noteItem.innerHTML = `
           <div class="note-item-title">${note.title || '無標題'}</div>
@@ -996,20 +1149,20 @@
     function selectNote(id) {
       currentNoteId = id;
       const note = notes.find(n => n.id === id);
-      
+
       if (note) {
         document.getElementById('noteTitle').value = note.title || '';
         document.getElementById('noteContent').value = note.content || '';
         document.getElementById('noteEditor').style.display = 'flex';
         document.getElementById('emptyState').style.display = 'none';
       }
-      
+
       renderNotesList();
     }
 
     function updateCurrentNote() {
       if (currentNoteId === null) return;
-      
+
       const note = notes.find(n => n.id === currentNoteId);
       if (note) {
         note.title = document.getElementById('noteTitle').value;
@@ -1022,7 +1175,7 @@
 
     function deleteCurrentNote() {
       if (currentNoteId === null) return;
-      
+
       if (confirm('確定要刪除這個筆記嗎？')) {
         notes = notes.filter(n => n.id !== currentNoteId);
         currentNoteId = null;
@@ -1169,7 +1322,7 @@
         cameraToggleBtn.textContent = '關閉攝像頭';
 
         // 等待視頻開始播放後才開始掃描
-        cameraVideo.onloadedmetadata = function() {
+        cameraVideo.onloadedmetadata = function () {
           cameraVideo.play().then(() => {
             startCameraScan();
           }).catch(error => {
@@ -1224,7 +1377,7 @@
 
           // 繪製視頻幀到 canvas
           ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
-          
+
           // 獲取圖像數據
           const imageData = ctx.getImageData(0, 0, videoWidth, videoHeight);
 
@@ -1252,9 +1405,9 @@
       }
 
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = function (e) {
         const img = new Image();
-        img.onload = function() {
+        img.onload = function () {
           // 顯示預覽圖
           document.getElementById('previewImg').src = img.src;
           document.getElementById('qrImagePreview').style.display = 'block';
@@ -1283,7 +1436,7 @@
             document.getElementById('qrDecodeResult').style.display = 'none';
           }
         };
-        img.onerror = function() {
+        img.onerror = function () {
           document.getElementById('qrScanStatus').innerHTML = '<span style="color: #e74c3c;">圖片加載失敗</span>';
         };
         img.src = e.target.result;
@@ -1292,7 +1445,7 @@
     }
 
     function displayQRDecodeResult(data) {
-      document.getElementById('qrScanStatus').textContent = '掃描成功！'+ new Date().toLocaleTimeString();
+      document.getElementById('qrScanStatus').textContent = '掃描成功！' + new Date().toLocaleTimeString();
       document.getElementById('decodedText').textContent = data;
       document.getElementById('qrDecodeResult').style.display = 'block';
 
@@ -1342,6 +1495,159 @@
         stopCamera();
       }
     }
+
+    // 定時提醒邏輯
+    let timerReminderInterval = null;
+    let audioContext = null;
+
+    function generateBeepSound() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+
+      const ctx = audioContext;
+      const now = ctx.currentTime;
+
+      // 發出 3 次"逼逼"聲
+      for (let i = 0; i < 3; i++) {
+        const startTime = now + i * 0.3;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.frequency.value = 1000; // 1000 Hz 頻率
+        osc.type = 'sine';
+
+        gain.gain.setValueAtTime(0.3, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
+
+        osc.start(startTime);
+        osc.stop(startTime + 0.2);
+      }
+    }
+
+    function setTimerReminder() {
+      const year = parseInt(document.getElementById('reminderYear').value);
+      const month = parseInt(document.getElementById('reminderMonth').value);
+      const day = parseInt(document.getElementById('reminderDay').value);
+      const amPm = document.getElementById('reminderAmPm').value;
+      const hour = parseInt(document.getElementById('reminderHour').value);
+      const minute = parseInt(document.getElementById('reminderMinute').value);
+      const second = parseInt(document.getElementById('reminderSecond').value);
+      const millisecond = parseInt(document.getElementById('reminderMillisecond').value) || 0;
+
+      // 檢查輸入
+      if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hour) || isNaN(minute) || isNaN(second)) {
+        alert('請輸入完整的時間');
+        return;
+      }
+
+      // 轉換為 24 小時制
+      let hour24 = hour;
+      if (amPm === 'pm' && hour !== 12) {
+        hour24 = hour + 12;
+      } else if (amPm === 'am' && hour === 12) {
+        hour24 = 0;
+      }
+
+      // 建立目標時間
+      const targetDate = new Date(year, month - 1, day, hour24, minute, second, millisecond);
+      const now = new Date();
+
+      if (targetDate <= now) {
+        alert('設定的時間已經過去，請選擇未來的時間');
+        return;
+      }
+
+      // 清除舊的計時器
+      if (timerReminderInterval) {
+        clearInterval(timerReminderInterval);
+      }
+
+      // 更新UI
+      const remainingMs = targetDate - now;
+      const days = Math.floor(remainingMs / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((remainingMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((remainingMs % (1000 * 60)) / 1000);
+
+      document.getElementById('reminderSetTime').textContent = `${year}年${String(month).padStart(2, '0')}月${String(day).padStart(2, '0')}日 ${amPm === 'am' ? '上午' : '下午'} ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`;
+      document.getElementById('reminderSetStatus').textContent = '已設定';
+      document.getElementById('reminderCountdown').style.display = 'block';
+      document.getElementById('reminderControls').style.display = 'block';
+
+      // 定時檢查
+      timerReminderInterval = setInterval(() => {
+        const now = new Date();
+
+        if (now >= targetDate) {
+          clearInterval(timerReminderInterval);
+          timerReminderInterval = null;
+
+          // 播放聲音
+          generateBeepSound();
+
+          document.getElementById('reminderCountdown').textContent = '時間到！';
+          document.getElementById('reminderSetStatus').textContent = '已提醒';
+
+          // 重置按鈕
+          document.getElementById('reminderControls').innerHTML = '<button onclick="resetTimerReminder()" class="secondary" style="width: 100%;">重置</button>';
+
+          // 顯示提醒
+
+          setTimeout(() => {
+            alert('時間到！');
+          }, 0);
+          return;
+        }
+
+        // 更新倒計時
+        const remainingMs = targetDate - now;
+        const days = Math.floor(remainingMs / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((remainingMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((remainingMs % (1000 * 60)) / 1000);
+        const milliseconds = remainingMs % 1000;
+
+        document.getElementById('reminderCountdown').textContent = `剩餘時間: ${days}天 ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(3, '0')}`;
+      }, 100);
+    }
+
+    function resetTimerReminder() {
+      if (timerReminderInterval) {
+        clearInterval(timerReminderInterval);
+        timerReminderInterval = null;
+      }
+
+      document.getElementById('reminderYear').value = new Date().getFullYear();
+      document.getElementById('reminderMonth').value = String(new Date().getMonth() + 1).padStart(2, '0');
+      document.getElementById('reminderDay').value = String(new Date().getDate()).padStart(2, '0');
+      document.getElementById('reminderHour').value = '00';
+      document.getElementById('reminderMinute').value = '00';
+      document.getElementById('reminderSecond').value = '00';
+      document.getElementById('reminderMillisecond').value = '000';
+      document.getElementById('reminderAmPm').value = 'am';
+
+      document.getElementById('reminderCountdown').style.display = 'none';
+      document.getElementById('reminderSetTime').textContent = '';
+      document.getElementById('reminderSetStatus').textContent = '未設定';
+      document.getElementById('reminderControls').innerHTML = '<button onclick="setTimerReminder()" class="success" style="width: 100%; padding: 12px;">設定提醒</button>';
+    }
+
+    // 初始化定時提醒頁面
+    document.addEventListener('DOMContentLoaded', function () {
+      const now = new Date();
+      document.getElementById('reminderYear').value = now.getFullYear();
+      document.getElementById('reminderMonth').value = String(now.getMonth() + 1).padStart(2, '0');
+      document.getElementById('reminderDay').value = String(now.getDate()).padStart(2, '0');
+      document.getElementById('reminderHour').value = '12';
+      document.getElementById('reminderMinute').value = '00';
+      document.getElementById('reminderSecond').value = '00';
+      document.getElementById('reminderMillisecond').value = '000';
+    });
   </script>
 </body>
+
 </html>
