@@ -4,6 +4,8 @@
  <meta charset="UTF-8">
  <meta name="viewport" content="width=device-width, initial-scale=1.0">
  <title>工具集</title>
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+ <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
  <style>
   * {
     margin: 0;
@@ -190,6 +192,97 @@
   button.secondary:hover {
     background-color: #7f8c8d;
   }
+
+  /* 記事本樣式 */
+  .note-container {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 20px;
+    height: 100%;
+  }
+
+  .notes-list {
+    border-right: 1px solid #ddd;
+    overflow-y: auto;
+    padding-right: 15px;
+  }
+
+  .note-item {
+    padding: 12px;
+    background-color: #ecf0f1;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    border-left: 4px solid #3498db;
+    transition: all 0.3s ease;
+  }
+
+  .note-item:hover {
+    background-color: #d5dbdb;
+  }
+
+  .note-item.active {
+    background-color: #3498db;
+    color: white;
+    border-left-color: #e74c3c;
+  }
+
+  .note-item-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .note-item-date {
+    font-size: 12px;
+    opacity: 0.7;
+  }
+
+  .note-editor {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .note-title-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    font-size: 16px;
+    font-weight: bold;
+  }
+
+  .note-content-textarea {
+    flex: 1;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    resize: vertical;
+    font-family: 'Courier New', monospace;
+  }
+
+  .note-controls {
+    display: flex;
+    gap: 10px;
+  }
+
+  .note-controls button {
+    flex: 1;
+  }
+
+  .empty-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #7f8c8d;
+    font-size: 16px;
+  }
  </style>
 </head>
 <body>
@@ -208,6 +301,9 @@
       <div class="page-item" data-page="world-time">全球時間</div>
       <div class="page-item" data-page="system-status">電腦狀態</div>
       <div class="page-item" data-page="wan-ip">WAN IP</div>
+      <div class="page-item" data-page="notepad">記事本</div>
+      <div class="page-item" data-page="qrcode">二維碼</div>
+      <div class="page-item" data-page="qrdecode">QR轉網址</div>
     </div>
   </div>
 
@@ -220,20 +316,21 @@
     <!-- 現在時間頁面 -->
     <div class="page-content active" id="current-time-page">
       <div style="text-align: center; padding: 40px;">
+        <div id="currentAmPm" style="font-size: 32px; font-weight: bold; color: #e74c3c; margin-bottom: 10px;">上午</div>
         <div id="currentClock" style="font-size: 72px; font-weight: bold; color: #3498db; margin-bottom: 30px; font-family: 'Courier New', monospace;">00:00:00</div>
         <div id="currentDate" style="font-size: 24px; color: #2c3e50; margin-bottom: 20px;"></div>
         <div id="currentWeekday" style="font-size: 18px; color: #7f8c8d; margin-bottom: 30px;"></div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 500px; margin: 0 auto;">
           <div style="padding: 15px; background-color: #ecf0f1; border-radius: 4px;">
-            <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 5px;">整數皀篑</div>
+            <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 5px;">小時（12h）</div>
             <div id="currentHour" style="font-size: 24px; font-weight: bold; color: #e74c3c;">00</div>
           </div>
           <div style="padding: 15px; background-color: #ecf0f1; border-radius: 4px;">
-            <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 5px;">整數分鐘</div>
+            <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 5px;">分鐘</div>
             <div id="currentMinute" style="font-size: 24px; font-weight: bold; color: #27ae60;">00</div>
           </div>
           <div style="padding: 15px; background-color: #ecf0f1; border-radius: 4px;">
-            <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 5px;">整數秒數</div>
+            <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 5px;">秒數</div>
             <div id="currentSecond" style="font-size: 24px; font-weight: bold; color: #9b59b6;">00</div>
           </div>
           <div style="padding: 15px; background-color: #ecf0f1; border-radius: 4px;">
@@ -378,6 +475,111 @@
       </div>
       <div id="worldTimeContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;"></div>
     </div>
+
+    <!-- 記事本頁面 -->
+    <div class="page-content" id="notepad-page">
+      <div style="height: 100%; display: flex; flex-direction: column;">
+        <div style="margin-bottom: 15px;">
+          <button onclick="createNewNote()" class="success" style="width: 100%; padding: 12px; font-size: 16px;">+ 新增筆記</button>
+        </div>
+        <div class="note-container" style="flex: 1;">
+          <div class="notes-list" id="notesList"></div>
+          <div id="noteEditor" class="note-editor" style="display: none;">
+            <input type="text" id="noteTitle" class="note-title-input" placeholder="輸入筆記標題..." onchange="updateCurrentNote()" oninput="updateCurrentNote()">
+            <textarea id="noteContent" class="note-content-textarea" placeholder="輸入筆記內容..." onchange="updateCurrentNote()" oninput="updateCurrentNote()"></textarea>
+            <div class="note-controls">
+              <button onclick="deleteCurrentNote()" class="danger">刪除</button>
+              <button onclick="closeNoteEditor()" class="secondary">關閉</button>
+            </div>
+          </div>
+          <div id="emptyState" class="empty-state">選擇或新增筆記</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 二維碼頁面 -->
+    <div class="page-content" id="qrcode-page">
+      <div style="padding: 30px; display: flex; flex-direction: column; align-items: center;">
+        <div style="width: 100%; max-width: 600px;">
+          <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 10px; font-weight: bold;">輸入連結或文字：</label>
+            <input type="text" id="qrcodeInput" placeholder="輸入URL或任意文字..." style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;" oninput="generateQRCode()">
+          </div>
+          
+          <div style="text-align: center; margin-bottom: 20px;">
+            <div id="qrcodeContainer" style="display: flex; justify-content: center; align-items: center; min-height: 300px; background-color: #f5f5f5; border-radius: 4px; padding: 20px;">
+              <div style="color: #7f8c8d; font-size: 14px;">輸入連結後將自動生成二維碼</div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            <button onclick="downloadQRCode()" class="success" style="flex: 1; padding: 12px;">下載二維碼</button>
+            <button onclick="copyQRCode()" class="secondary" style="flex: 1; padding: 12px;">複製圖片</button>
+            <button onclick="clearQRCode()" class="danger" style="flex: 1; padding: 12px;">清空</button>
+          </div>
+
+          <div style="margin-top: 20px; padding: 15px; background-color: #ecf0f1; border-radius: 4px;">
+            <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 5px;">當前輸入文字</div>
+            <div id="qrcodeText" style="font-size: 13px; color: #2c3e50; word-break: break-all; max-height: 80px; overflow-y: auto;">無</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QR轉網址頁面 -->
+    <div class="page-content" id="qrdecode-page">
+      <div style="padding: 30px; display: flex; flex-direction: column; align-items: center;">
+        <div style="width: 100%; max-width: 600px;">
+          <div style="margin-bottom: 20px;">
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+              <div style="flex: 1;">
+                <label style="display: block; margin-bottom: 10px; font-weight: bold;">上傳QR Code圖片：</label>
+                <input type="file" id="qrImageInput" accept="image/*" onchange="scanQRCode()" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+              </div>
+              <div style="flex: 1;">
+                <label style="display: block; margin-bottom: 10px; font-weight: bold;">或使用攝像頭：</label>
+                <button id="cameraToggleBtn" onclick="toggleCamera()" class="success" style="width: 100%; padding: 12px; font-size: 14px;">打開攝像頭</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="cameraContainer" style="display: none; margin-bottom: 20px; text-align: center;">
+            <video id="cameraVideo" style="width: 100%; max-width: 400px; border-radius: 4px; background-color: #000; display: block; margin: 0 auto 10px;"></video>
+            <canvas id="cameraCanvas" style="display: none;"></canvas>
+            <button onclick="toggleCamera()" class="danger" style="width: 100%; padding: 12px;">關閉攝像頭</button>
+          </div>
+
+          <div style="text-align: center; margin-bottom: 20px;">
+            <div id="qrImagePreview" style="display: none; max-width: 300px; margin: 0 auto; border-radius: 4px; overflow: hidden;">
+              <img id="previewImg" style="width: 100%; height: auto; display: block;">
+            </div>
+            <div id="qrScanStatus" style="color: #7f8c8d; font-size: 14px; min-height: 40px; display: flex; align-items: center; justify-content: center;">選擇圖片或打開攝像頭進行掃描</div>
+          </div>
+
+          <div id="qrDecodeResult" style="display: none; padding: 20px; background-color: #ecf0f1; border-radius: 4px; margin-bottom: 20px;">
+            <div style="margin-bottom: 15px;">
+              <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 5px;">解析結果：</div>
+              <div id="decodedText" style="font-size: 14px; color: #2c3e50; word-break: break-all; padding: 10px; background-color: white; border-radius: 4px; border: 1px solid #ddd; min-height: 50px;"></div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <button onclick="copyDecodedText()" class="secondary" style="flex: 1; padding: 10px;">複製文字</button>
+              <button onclick="openDecodedURL()" id="openUrlBtn" class="success" style="flex: 1; padding: 10px; display: none;">打開連結</button>
+              <button onclick="clearQRDecode()" class="danger" style="flex: 1; padding: 10px;">清空</button>
+            </div>
+          </div>
+
+          <div style="padding: 15px; background-color: #ecf0f1; border-radius: 4px; font-size: 12px; color: #7f8c8d;">
+            <div style="margin-bottom: 8px;"><strong>提示：</strong></div>
+            <ul style="margin-left: 20px;">
+              <li>支持PNG、JPG、GIF等常見圖片格式</li>
+              <li>確保QR Code清晰可見，光線充足</li>
+              <li>攝像頭需要瀏覽器權限許可</li>
+              <li>支持解析URL和任意文字內容</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -395,7 +597,10 @@
       'char-count': '字數統計',
       'world-time': '全球時間',
       'system-status': '電腦狀態',
-      'wan-ip': 'WAN IP'
+      'wan-ip': 'WAN IP',
+      notepad: '記事本',
+      qrcode: '二維碼',
+      qrdecode: 'QR轉網址'
     };
 
     pageItems.forEach(item => {
@@ -595,14 +800,21 @@
     function updateCurrentTime() {
       const now = new Date();
       
+      // 取得 24 小時制的小時
+      const hours24 = now.getHours();
+      
+      // 轉換為 12 小時制
+      const amPm = hours24 >= 12 ? '下午' : '上午';
+      const hours12 = hours24 % 12 === 0 ? 12 : hours24 % 12;
+      
       // 時間的整数部分
-      const hours = String(now.getHours()).padStart(2, '0');
       const minutes = String(now.getMinutes()).padStart(2, '0');
       const seconds = String(now.getSeconds()).padStart(2, '0');
       
-      // 完整的時時:8f:8fdu秒
-      document.getElementById('currentClock').textContent = `${hours}:${minutes}:${seconds}`;
-      document.getElementById('currentHour').textContent = hours;
+      // 完整的時間顯示（12小時制）
+      document.getElementById('currentAmPm').textContent = amPm;
+      document.getElementById('currentClock').textContent = `${String(hours12).padStart(2, '0')}:${minutes}:${seconds}`;
+      document.getElementById('currentHour').textContent = String(hours12).padStart(2, '0');
       document.getElementById('currentMinute').textContent = minutes;
       document.getElementById('currentSecond').textContent = seconds;
       
@@ -727,6 +939,409 @@
     updateWorldTime();
     // 每秒更新一次
     setInterval(updateWorldTime, 1000);
+
+    // 記事本邏輯
+    let notes = [];
+    let currentNoteId = null;
+
+    function loadNotes() {
+      const saved = localStorage.getItem('notes');
+      notes = saved ? JSON.parse(saved) : [];
+      renderNotesList();
+    }
+
+    function saveNotes() {
+      localStorage.setItem('notes', JSON.stringify(notes));
+    }
+
+    function renderNotesList() {
+      const notesList = document.getElementById('notesList');
+      notesList.innerHTML = '';
+
+      if (notes.length === 0) {
+        notesList.innerHTML = '<div style="text-align: center; color: #7f8c8d; padding: 20px;">暫無筆記</div>';
+        return;
+      }
+
+      notes.forEach(note => {
+        const noteItem = document.createElement('div');
+        noteItem.className = 'note-item';
+        if (currentNoteId === note.id) {
+          noteItem.classList.add('active');
+        }
+        noteItem.onclick = () => selectNote(note.id);
+        
+        const date = new Date(note.updated).toLocaleDateString('zh-TW');
+        noteItem.innerHTML = `
+          <div class="note-item-title">${note.title || '無標題'}</div>
+          <div class="note-item-date">${date}</div>
+        `;
+        notesList.appendChild(noteItem);
+      });
+    }
+
+    function createNewNote() {
+      const newNote = {
+        id: Date.now(),
+        title: '',
+        content: '',
+        created: Date.now(),
+        updated: Date.now()
+      };
+      notes.unshift(newNote);
+      saveNotes();
+      selectNote(newNote.id);
+    }
+
+    function selectNote(id) {
+      currentNoteId = id;
+      const note = notes.find(n => n.id === id);
+      
+      if (note) {
+        document.getElementById('noteTitle').value = note.title || '';
+        document.getElementById('noteContent').value = note.content || '';
+        document.getElementById('noteEditor').style.display = 'flex';
+        document.getElementById('emptyState').style.display = 'none';
+      }
+      
+      renderNotesList();
+    }
+
+    function updateCurrentNote() {
+      if (currentNoteId === null) return;
+      
+      const note = notes.find(n => n.id === currentNoteId);
+      if (note) {
+        note.title = document.getElementById('noteTitle').value;
+        note.content = document.getElementById('noteContent').value;
+        note.updated = Date.now();
+        saveNotes();
+        renderNotesList();
+      }
+    }
+
+    function deleteCurrentNote() {
+      if (currentNoteId === null) return;
+      
+      if (confirm('確定要刪除這個筆記嗎？')) {
+        notes = notes.filter(n => n.id !== currentNoteId);
+        currentNoteId = null;
+        saveNotes();
+        closeNoteEditor();
+      }
+    }
+
+    function closeNoteEditor() {
+      currentNoteId = null;
+      document.getElementById('noteEditor').style.display = 'none';
+      document.getElementById('emptyState').style.display = 'flex';
+      renderNotesList();
+    }
+
+    // 初始化記事本
+    loadNotes();
+
+    // 二維碼邏輯
+    let qrcodeInstance = null;
+    let hasQRCode = false;
+
+    function generateQRCode() {
+      const input = document.getElementById('qrcodeInput').value.trim();
+      const container = document.getElementById('qrcodeContainer');
+      const textDisplay = document.getElementById('qrcodeText');
+
+      // 更新顯示的文字
+      if (input) {
+        textDisplay.textContent = input;
+      } else {
+        textDisplay.textContent = '無';
+      }
+
+      // 清空舊的二維碼
+      container.innerHTML = '';
+      hasQRCode = false;
+
+      // 如果輸入為空，提示用戶
+      if (!input) {
+        container.innerHTML = '<div style="color: #7f8c8d; font-size: 14px;">輸入連結後將自動生成二維碼</div>';
+        return;
+      }
+
+      // 生成新的二維碼
+      try {
+        qrcodeInstance = new QRCode(container, {
+          text: input,
+          width: 250,
+          height: 250,
+          colorDark: '#000000',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.H
+        });
+        hasQRCode = true;
+      } catch (error) {
+        container.innerHTML = '<div style="color: #e74c3c; font-size: 14px;">生成二維碼失敗：' + error.message + '</div>';
+      }
+    }
+
+    function downloadQRCode() {
+      if (!hasQRCode) {
+        alert('請先輸入內容生成二維碼');
+        return;
+      }
+
+      const canvas = document.querySelector('#qrcodeContainer canvas');
+      if (!canvas) {
+        alert('無法下載，請重新生成二維碼');
+        return;
+      }
+
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = 'qrcode-' + Date.now() + '.png';
+      link.click();
+    }
+
+    function copyQRCode() {
+      if (!hasQRCode) {
+        alert('請先輸入內容生成二維碼');
+        return;
+      }
+
+      const canvas = document.querySelector('#qrcodeContainer canvas');
+      if (!canvas) {
+        alert('無法複製，請重新生成二維碼');
+        return;
+      }
+
+      canvas.toBlob(blob => {
+        navigator.clipboard.write([
+          new ClipboardItem({ 'image/png': blob })
+        ]).then(() => {
+          alert('已複製二維碼圖片到剪貼板');
+        }).catch(err => {
+          alert('複製失敗：' + err.message);
+        });
+      });
+    }
+
+    function clearQRCode() {
+      document.getElementById('qrcodeInput').value = '';
+      document.getElementById('qrcodeContainer').innerHTML = '<div style="color: #7f8c8d; font-size: 14px;">輸入連結後將自動生成二維碼</div>';
+      document.getElementById('qrcodeText').textContent = '無';
+      hasQRCode = false;
+    }
+
+    // QR轉網址邏輯
+    let decodedData = '';
+    let cameraStream = null;
+    let cameraActive = false;
+    let cameraScanInterval = null;
+
+    function toggleCamera() {
+      if (cameraActive) {
+        stopCamera();
+      } else {
+        startCamera();
+      }
+    }
+
+    function startCamera() {
+      const cameraContainer = document.getElementById('cameraContainer');
+      const cameraVideo = document.getElementById('cameraVideo');
+      const cameraToggleBtn = document.getElementById('cameraToggleBtn');
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('您的瀏覽器不支持攝像頭功能');
+        return;
+      }
+
+      navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'environment',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      }).then(stream => {
+        cameraStream = stream;
+        cameraActive = true;
+        cameraContainer.style.display = 'block';
+        cameraVideo.srcObject = stream;
+        cameraToggleBtn.textContent = '關閉攝像頭';
+
+        // 等待視頻開始播放後才開始掃描
+        cameraVideo.onloadedmetadata = function() {
+          cameraVideo.play().then(() => {
+            startCameraScan();
+          }).catch(error => {
+            console.error('播放視頻錯誤:', error);
+          });
+        };
+      }).catch(error => {
+        console.error('攝像頭錯誤:', error);
+        if (error.name === 'NotAllowedError') {
+          alert('您已拒絕攝像頭訪問權限');
+        } else if (error.name === 'NotFoundError') {
+          alert('未找到可用的攝像頭');
+        } else {
+          alert('無法訪問攝像頭：' + error.message);
+        }
+      });
+    }
+
+    function stopCamera() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+      }
+      cameraActive = false;
+      if (cameraScanInterval) {
+        clearInterval(cameraScanInterval);
+        cameraScanInterval = null;
+      }
+      document.getElementById('cameraContainer').style.display = 'none';
+      document.getElementById('cameraToggleBtn').textContent = '打開攝像頭';
+    }
+
+    function startCameraScan() {
+      const video = document.getElementById('cameraVideo');
+      const canvas = document.getElementById('cameraCanvas');
+      const ctx = canvas.getContext('2d');
+
+      cameraScanInterval = setInterval(() => {
+        if (!cameraActive || !video.srcObject) return;
+
+        try {
+          const videoWidth = video.videoWidth;
+          const videoHeight = video.videoHeight;
+
+          if (videoWidth === 0 || videoHeight === 0) {
+            console.log('等待視頻加載...');
+            return;
+          }
+
+          canvas.width = videoWidth;
+          canvas.height = videoHeight;
+
+          // 繪製視頻幀到 canvas
+          ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
+          
+          // 獲取圖像數據
+          const imageData = ctx.getImageData(0, 0, videoWidth, videoHeight);
+
+          // 掃描 QR Code
+          const code = jsQR(imageData.data, videoWidth, videoHeight);
+
+          if (code) {
+            decodedData = code.data;
+            displayQRDecodeResult(decodedData);
+            //stopCamera();
+          }
+        } catch (error) {
+          console.error('掃描錯誤:', error);
+        }
+      }, 300);
+    }
+
+    function scanQRCode() {
+      const fileInput = document.getElementById('qrImageInput');
+      const file = fileInput.files[0];
+
+      if (!file) {
+        document.getElementById('qrScanStatus').textContent = '請選擇圖片';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          // 顯示預覽圖
+          document.getElementById('previewImg').src = img.src;
+          document.getElementById('qrImagePreview').style.display = 'block';
+          document.getElementById('qrScanStatus').textContent = '正在掃描...';
+
+          // 建立canvas並從圖片提取像素數據
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+
+          try {
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+            if (code) {
+              decodedData = code.data;
+              displayQRDecodeResult(decodedData);
+            } else {
+              document.getElementById('qrScanStatus').innerHTML = '<span style="color: #e74c3c;">無法識別QR Code，請確保圖片清晰</span>';
+              document.getElementById('qrDecodeResult').style.display = 'none';
+            }
+          } catch (error) {
+            document.getElementById('qrScanStatus').innerHTML = '<span style="color: #e74c3c;">掃描失敗：' + error.message + '</span>';
+            document.getElementById('qrDecodeResult').style.display = 'none';
+          }
+        };
+        img.onerror = function() {
+          document.getElementById('qrScanStatus').innerHTML = '<span style="color: #e74c3c;">圖片加載失敗</span>';
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function displayQRDecodeResult(data) {
+      document.getElementById('qrScanStatus').textContent = '掃描成功！'+ new Date().toLocaleTimeString();
+      document.getElementById('decodedText').textContent = data;
+      document.getElementById('qrDecodeResult').style.display = 'block';
+
+      // 檢查是否是URL
+      const isUrl = /^(https?:\/\/|www\.)/.test(data);
+      const openBtn = document.getElementById('openUrlBtn');
+      if (isUrl) {
+        openBtn.style.display = 'block';
+      } else {
+        openBtn.style.display = 'none';
+      }
+    }
+
+    function copyDecodedText() {
+      if (!decodedData) {
+        alert('沒有可複製的內容');
+        return;
+      }
+      navigator.clipboard.writeText(decodedData).then(() => {
+        alert('已複製到剪貼板');
+      }).catch(err => {
+        alert('複製失敗：' + err.message);
+      });
+    }
+
+    function openDecodedURL() {
+      if (!decodedData) {
+        alert('沒有可打開的連結');
+        return;
+      }
+
+      let url = decodedData;
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://' + url;
+      }
+
+      window.open(url, '_blank');
+    }
+
+    function clearQRDecode() {
+      document.getElementById('qrImageInput').value = '';
+      document.getElementById('qrImagePreview').style.display = 'none';
+      document.getElementById('qrScanStatus').textContent = '選擇圖片或打開攝像頭進行掃描';
+      document.getElementById('qrDecodeResult').style.display = 'none';
+      decodedData = '';
+      if (cameraActive) {
+        stopCamera();
+      }
+    }
   </script>
 </body>
 </html>
