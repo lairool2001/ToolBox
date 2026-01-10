@@ -100,6 +100,7 @@
       display: flex;
       flex-direction: column;
       padding: 20px;
+      overflow-y: auto;
     }
 
     .content-header {
@@ -421,13 +422,13 @@
       </div>
       <div style="margin-bottom: 20px;">
         <label>搜尋（原字串）：</label>
-        <input type="text" id="findText" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"
-          placeholder="輸入要搜尋的字串...">
+        <textarea type="text" id="findText" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"
+          placeholder="輸入要搜尋的字串..."></textarea>
       </div>
       <div style="margin-bottom: 20px;">
         <label>替換成（新字串）：</label>
-        <input type="text" id="replaceText"
-          style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" placeholder="輸入替換成的字串...">
+        <textarea type="text" id="replaceText"
+          style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" placeholder="輸入替換成的字串..."></textarea>
       </div>
       <div style="margin-bottom: 20px;">
         <label>替換方式：</label>
@@ -435,6 +436,31 @@
           <option value="first">只替換第一個</option>
           <option value="all" selected>替換全部</option>
         </select>
+      </div>
+      <div style="margin-bottom: 20px;">
+        <label>
+          <input type="checkbox" id="useRegex" onchange="toggleRegexOptions()">
+          使用正則表達式
+        </label>
+      </div>
+      <div id="regexOptions" style="margin-bottom: 20px; display: none; padding: 15px; background-color: #ecf0f1; border-radius: 4px;">
+        <div style="margin-bottom: 10px;">
+          <label style="font-size: 12px; color: #7f8c8d;">正則表達式旗標：</label>
+          <div style="margin-top: 5px;">
+            <label style="margin-right: 15px;">
+              <input type="checkbox" id="regexGlobal" checked>
+              g (全局匹配)
+            </label>
+            <label style="margin-right: 15px;">
+              <input type="checkbox" id="regexIgnoreCase">
+              i (忽略大小寫)
+            </label>
+            <label>
+              <input type="checkbox" id="regexMultiline">
+              m (多行模式)
+            </label>
+          </div>
+        </div>
       </div>
       <div style="margin-bottom: 20px;">
         <button onclick="performReplace()" class="success" style="width: 100%; padding: 12px;">執行替換</button>
@@ -834,22 +860,46 @@
     }
 
     // 字串替代邏輯
+    function toggleRegexOptions() {
+      const useRegex = document.getElementById('useRegex').checked;
+      document.getElementById('regexOptions').style.display = useRegex ? 'block' : 'none';
+    }
+
     function performReplace() {
       const originalText = document.getElementById('originalText').value;
       const findText = document.getElementById('findText').value;
       const replaceText = document.getElementById('replaceText').value;
       const replaceMode = document.getElementById('replaceMode').value;
+      const useRegex = document.getElementById('useRegex').checked;
 
       if (!findText) {
-        alert('請輸入要搜尋的字串');
+        alert('請輸入要搜尋的內容');
         return;
       }
 
       let result;
-      if (replaceMode === 'first') {
-        result = originalText.replace(findText, replaceText);
+
+      if (useRegex) {
+        // 使用正則表達式模式
+        try {
+          const flags = 
+            (document.getElementById('regexGlobal').checked ? 'g' : '') +
+            (document.getElementById('regexIgnoreCase').checked ? 'i' : '') +
+            (document.getElementById('regexMultiline').checked ? 'm' : '');
+
+          const regex = new RegExp(findText, flags);
+          result = originalText.replace(regex, replaceText);
+        } catch (error) {
+          alert('正則表達式語法錯誤：' + error.message);
+          return;
+        }
       } else {
-        result = originalText.replaceAll(findText, replaceText);
+        // 使用普通字串替換
+        if (replaceMode === 'first') {
+          result = originalText.replace(findText, replaceText);
+        } else {
+          result = originalText.replaceAll(findText, replaceText);
+        }
       }
 
       document.getElementById('resultText').value = result;
