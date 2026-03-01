@@ -303,6 +303,13 @@
       color: #7f8c8d;
       font-size: 16px;
     }
+
+    /* 行事曆文字框 */
+    #calendarGrid textarea:focus {
+      outline: none;
+      border-color: #3498db !important;
+      background-color: #f0f8ff;
+    }
   </style>
 </head>
 
@@ -326,6 +333,7 @@
       <div class="page-item" data-page="qrcode">網址或文字轉QR</div>
       <div class="page-item" data-page="qrdecode">QR轉網址</div>
       <div class="page-item" data-page="timer-reminder">定時提醒</div>
+      <div class="page-item" data-page="calendar">行事曆</div>
     </div>
   </div>
 
@@ -662,6 +670,19 @@
       </div>
     </div>
 
+    <!-- 行事曆頁面 -->
+    <div class="page-content" id="calendar-page">
+      <div style="padding: 20px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+          <button onclick="calPrevMonth()" class="secondary" style="padding: 8px 16px;">&lt;</button>
+          <h3 id="calMonthTitle" style="color: #2c3e50; margin: 0; font-size: 22px;"></h3>
+          <button onclick="calNextMonth()" class="secondary" style="padding: 8px 16px;">&gt;</button>
+        </div>
+        <button onclick="calGoToday()" class="success" style="display: block; margin: 0 auto 20px; padding: 6px 20px;">今天</button>
+        <div id="calendarGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background-color: #ddd; border: 1px solid #ddd; border-radius: 4px; overflow: hidden;"></div>
+      </div>
+    </div>
+
     <!-- 定時提醒頁面 -->
     <div class="page-content" id="timer-reminder-page">
       <div style="padding: 30px; display: flex; flex-direction: column; align-items: center;">
@@ -779,7 +800,8 @@
       notepad: '記事本',
       qrcode: '二維碼',
       qrdecode: 'QR轉網址',
-      'timer-reminder': '定時提醒'
+      'timer-reminder': '定時提醒',
+      calendar: '行事曆'
     };
 
     pageItems.forEach(item => {
@@ -1685,6 +1707,93 @@
       document.getElementById('reminderSetStatus').textContent = '未設定';
       document.getElementById('reminderControls').innerHTML = '<button onclick="setTimerReminder()" class="success" style="width: 100%; padding: 12px;">設定提醒</button>';
     }
+
+    // 行事曆邏輯
+    let calYear = new Date().getFullYear();
+    let calMonth = new Date().getMonth(); // 0-indexed
+
+    function calGetData() {
+      const saved = localStorage.getItem('calendarData');
+      return saved ? JSON.parse(saved) : {};
+    }
+
+    function calSaveData(data) {
+      localStorage.setItem('calendarData', JSON.stringify(data));
+    }
+
+    function calRender() {
+      const grid = document.getElementById('calendarGrid');
+      const title = document.getElementById('calMonthTitle');
+      title.textContent = `${calYear} 年 ${calMonth + 1} 月`;
+
+      const data = calGetData();
+      const firstDay = new Date(calYear, calMonth, 1).getDay(); // 0=Sun
+      const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+      const today = new Date();
+      const isCurrentMonth = today.getFullYear() === calYear && today.getMonth() === calMonth;
+
+      const weekHeaders = ['日', '一', '二', '三', '四', '五', '六'];
+      let html = '';
+
+      // Week headers
+      weekHeaders.forEach(d => {
+        html += `<div style="background:#34495e;color:white;text-align:center;padding:10px;font-weight:bold;">${d}</div>`;
+      });
+
+      // Empty cells before first day
+      for (let i = 0; i < firstDay; i++) {
+        html += '<div style="background:#f9f9f9;"></div>';
+      }
+
+      // Day cells
+      for (let d = 1; d <= daysInMonth; d++) {
+        const key = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const val = data[key] || '';
+        const isToday = isCurrentMonth && today.getDate() === d;
+        const todayBorder = isToday ? 'border:2px solid #e74c3c;' : '';
+        const bgColor = isToday ? '#fff8f0' : 'white';
+
+        html += `<div style="background:${bgColor};padding:6px;min-height:100px;display:flex;flex-direction:column;${todayBorder}">
+          <div style="font-weight:bold;margin-bottom:4px;color:${isToday ? '#e74c3c' : '#2c3e50'};font-size:14px;">${d}</div>
+          <textarea data-cal-key="${key}" oninput="calOnInput(this)" style="flex:1;width:100%;border:1px solid #eee;border-radius:3px;padding:4px;font-size:12px;resize:none;font-family:inherit;min-height:60px;">${val.replace(/</g, '&lt;')}</textarea>
+        </div>`;
+      }
+
+      grid.innerHTML = html;
+    }
+
+    function calOnInput(el) {
+      const key = el.dataset.calKey;
+      const data = calGetData();
+      if (el.value.trim()) {
+        data[key] = el.value;
+      } else {
+        delete data[key];
+      }
+      calSaveData(data);
+    }
+
+    function calPrevMonth() {
+      calMonth--;
+      if (calMonth < 0) { calMonth = 11; calYear--; }
+      calRender();
+    }
+
+    function calNextMonth() {
+      calMonth++;
+      if (calMonth > 11) { calMonth = 0; calYear++; }
+      calRender();
+    }
+
+    function calGoToday() {
+      const now = new Date();
+      calYear = now.getFullYear();
+      calMonth = now.getMonth();
+      calRender();
+    }
+
+    // 初始化行事曆
+    calRender();
 
     // 初始化定時提醒頁面
     document.addEventListener('DOMContentLoaded', function () {
